@@ -1,7 +1,9 @@
 [project]
 name = "bedrock"
 version = "0.1.0"
-description = "Add your description here"
+description = "Bedrock guide for AWS"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "boto3>=1.40.15",
+]
