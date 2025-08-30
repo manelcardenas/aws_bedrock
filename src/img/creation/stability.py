@@ -32,7 +32,7 @@ base64_image_data = response_body.get("images")[0]
 image_data = base64.b64decode(base64_image_data)
 
 # Save the generated image to a local folder.
-file_name = "/images/stability_image_2.png"
+file_name = "images/stability_image_2.png"
 with open(file_name, "wb") as file:
     file.write(image_data)
 
