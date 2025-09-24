@@ -14,3 +14,6 @@ wheels/
 
 # images
 /images
+
+# AI agents
+.coderabbit.yaml
