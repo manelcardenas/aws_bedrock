@@ -9,6 +9,7 @@ app = cdk.App()
 InfraImagesStack(
     app,
     "InfraImagesStack",
+    env_name="prod",  # Environment name for resource naming
 )
 
 app.synth()

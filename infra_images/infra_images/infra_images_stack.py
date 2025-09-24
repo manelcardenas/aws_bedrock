@@ -6,19 +6,28 @@ from aws_cdk import (
     aws_apigateway,
     aws_iam,
     aws_s3,
-    aws_cloudwatch,
+    Tags,
 )
 from constructs import Construct
 
 
 class InfraImagesStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(
+        self, scope: Construct, construct_id: str, env_name: str, **kwargs
+    ) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        # 🏷️ ADD TAGS for resource organization
+        Tags.of(self).add("Project", "ImageGeneration")
+        Tags.of(self).add("Environment", env_name)
+        Tags.of(self).add("ManagedBy", "CDK")
 
         # 📂 S3 BUCKET for storing images
         image_bucket = aws_s3.Bucket(
             self,
             id="ImageBucket",
+            # Environment variable for the S3 bucket
+            bucket_name=f"{env_name}-image-generation-bucket-{self.account}",
             # 🔒 Block public access
             block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
             # 📦 Lifecycle rule to expire objects after 30 days
@@ -35,20 +44,17 @@ class InfraImagesStack(Stack):
         image_lambda = aws_lambda.Function(
             self,
             id="ImageLambda",
+            function_name=f"{env_name}-image-generation-lambda-{self.account}",
             runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_asset("services"),
             handler="image.handler",
             timeout=Duration.seconds(30),
+            memory_size=512,  # more memory -> faster execution
+            retry_attempts=0,  # no retries -> faster execution
             environment={
                 "S3_BUCKET": image_bucket.bucket_name,
+                "LOG_LEVEL": "INFO",
             },
-        )
-        # Lambda error logging to CloudWatch
-        aws_cloudwatch.Alarm(
-            self,
-            id="ImageLambdaErrorAlarm",
-            metric=image_lambda.metric_errors(),
-            evaluation_periods=2,
         )
 
         # 🔑 GRANT READ AND WRITE ACCESS TO S3 BUCKET
@@ -66,17 +72,8 @@ class InfraImagesStack(Stack):
         api = aws_apigateway.RestApi(
             self,
             id="ImageApi",
-            rest_api_name="Image Generation API",
+            rest_api_name=f"{env_name}-image-generation-api-{self.account}",
             description="API for generating images using Bedrock",
-        )
-
-        # API Gateway 4xx Error Alarm
-        aws_cloudwatch.Alarm(
-            self,
-            id="ImageApi4xxErrorAlarm",
-            metric=api.metric_4xx_errors(),
-            threshold=10,
-            evaluation_periods=2,
         )
 
         # 🔑 API KEY - This is what clients will use to authenticate
@@ -116,10 +113,43 @@ class InfraImagesStack(Stack):
         # 📍 CREATE ENDPOINT with API KEY REQUIRED
         image_resource = api.root.add_resource("image")
         image_integration = aws_apigateway.LambdaIntegration(image_lambda)
+
+        # 📋 REQUEST VALIDATION MODEL
+        request_model = api.add_model(
+            "ImageRequestModel",
+            content_type="application/json",
+            model_name="ImageRequest",
+            schema=aws_apigateway.JsonSchema(
+                schema=aws_apigateway.JsonSchemaVersion.DRAFT4,
+                type=aws_apigateway.JsonSchemaType.OBJECT,
+                properties={
+                    "description": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.STRING,
+                        min_length=1,
+                        max_length=500,
+                    )
+                },
+                required=["description"],
+            ),
+        )
+
+        # 🔍 REQUEST VALIDATOR
+        request_validator = aws_apigateway.RequestValidator(
+            self, "RequestValidator", rest_api=api, validate_request_body=True
+        )
+
+        # 📍 ADD METHOD WITH VALIDATION
         image_resource.add_method(
             "POST",
             image_integration,
             api_key_required=True,  # 🔐 THIS MAKES API KEY MANDATORY
+            request_models={"application/json": request_model},
+            request_validator=request_validator,
+        )
+        image_resource.add_cors_preflight(
+            allow_origins=["*"],
+            allow_methods=["POST", "OPTIONS"],
+            allow_headers=["Content-Type", "x-api-key"],
         )
 
         # 🚀 FORCE API DEPLOYMENT (ensures changes are applied)
