@@ -6,6 +6,7 @@ from aws_cdk import (
     aws_apigateway,
     aws_iam,
     aws_s3,
+    aws_cloudwatch,
 )
 from constructs import Construct
 
@@ -15,7 +16,20 @@ class InfraImagesStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         # 📂 S3 BUCKET for storing images
-        image_bucket = aws_s3.Bucket(self, id="ImageBucket")
+        image_bucket = aws_s3.Bucket(
+            self,
+            id="ImageBucket",
+            # 🔒 Block public access
+            block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
+            # 📦 Lifecycle rule to expire objects after 30 days
+            lifecycle_rules=[
+                aws_s3.LifecycleRule(
+                    id="DeleteAfter30Days",
+                    enabled=True,
+                    expiration=Duration.days(30),
+                )
+            ],
+        )
 
         # 📦 LAMBDA FUNCTION for generating images
         image_lambda = aws_lambda.Function(
@@ -29,6 +43,14 @@ class InfraImagesStack(Stack):
                 "S3_BUCKET": image_bucket.bucket_name,
             },
         )
+        # Lambda error logging to CloudWatch
+        aws_cloudwatch.Alarm(
+            self,
+            id="ImageLambdaErrorAlarm",
+            metric=image_lambda.metric_errors(),
+            evaluation_periods=2,
+        )
+
         # 🔑 GRANT READ AND WRITE ACCESS TO S3 BUCKET
         image_bucket.grant_read_write(image_lambda)
         # 🔑 GRANT ACCESS TO BEDROCK
@@ -46,6 +68,15 @@ class InfraImagesStack(Stack):
             id="ImageApi",
             rest_api_name="Image Generation API",
             description="API for generating images using Bedrock",
+        )
+
+        # API Gateway 4xx Error Alarm
+        aws_cloudwatch.Alarm(
+            self,
+            id="ImageApi4xxErrorAlarm",
+            metric=api.metric_4xx_errors(),
+            threshold=10,
+            evaluation_periods=2,
         )
 
         # 🔑 API KEY - This is what clients will use to authenticate
@@ -90,13 +121,13 @@ class InfraImagesStack(Stack):
             image_integration,
             api_key_required=True,  # 🔐 THIS MAKES API KEY MANDATORY
         )
-        
+
         # 🚀 FORCE API DEPLOYMENT (ensures changes are applied)
         deployment = aws_apigateway.Deployment(
             self,
             id="ImageApiDeployment",
             api=api,
-            description="Deployment for Image API with API Key"
+            description="Deployment for Image API with API Key",
         )
         deployment.node.add_dependency(image_resource)
 
@@ -107,17 +138,17 @@ class InfraImagesStack(Stack):
             description="API Key ID (use AWS CLI to get the actual secret value)",
             value=api_key.key_id,  # This is just the ID, not the secret value
         )
-        
+
         CfnOutput(
             self,
             id="ApiEndpoint",
             description="API Gateway endpoint URL",
             value=api.url,
         )
-        
+
         CfnOutput(
             self,
             id="GetApiKeyCommand",
             description="Command to get the actual API key secret value",
-            value=f"aws apigateway get-api-key --api-key {api_key.key_id} --include-value --region us-west-2",
+            value=f"aws apigateway get-api-key --api-key {api_key.key_id} --include-value --region {self.region}",
         )
