@@ -103,9 +103,9 @@ class InfraImagesStack(Stack):
         # 📤 OUTPUTS - Display important values after deployment
         CfnOutput(
             self,
-            id="ApiKeyValue",
-            description="API Key for accessing the Image Generation API",
-            value=api_key.key_id,  # This gives you the actual API key value
+            id="ApiKeyId",
+            description="API Key ID (use AWS CLI to get the actual secret value)",
+            value=api_key.key_id,  # This is just the ID, not the secret value
         )
         
         CfnOutput(
@@ -113,4 +113,11 @@ class InfraImagesStack(Stack):
             id="ApiEndpoint",
             description="API Gateway endpoint URL",
             value=api.url,
+        )
+        
+        CfnOutput(
+            self,
+            id="GetApiKeyCommand",
+            description="Command to get the actual API key secret value",
+            value=f"aws apigateway get-api-key --api-key {api_key.key_id} --include-value --region us-west-2",
         )
