@@ -12,4 +12,6 @@ InfraImagesStack(
     env_name="prod",  # Environment name for resource naming
 )
 
+# TODO: add boodstrap as part of the pipeline
+
 app.synth()

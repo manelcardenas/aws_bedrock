@@ -45,16 +45,6 @@ jobs: # JOBS - what actually runs
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: 🥾 Bootstrap CDK (if needed)
-      working-directory: ./infra_images
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-west-2
-      run: |
-        echo "🥾 Ensuring CDK is bootstrapped..."
-        cdk bootstrap --require-approval never
-        
     - name: 👀 Preview changes (PR only)
       if: github.event_name == 'pull_request'
       working-directory: ./infra_images
