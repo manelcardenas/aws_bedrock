@@ -18,7 +18,7 @@ class InfraImagesStack(Stack):
         image_lambda = aws_lambda.Function(
             self,
             id="ImageLambda",
-            runtime=aws_lambda.Runtime.PYTHON_3_13,
+            runtime=aws_lambda.Runtime.PYTHON_3_12,
             code=aws_lambda.Code.from_asset("services"),
             handler="image.handler",
             timeout=Duration.seconds(30),

@@ -58,11 +58,11 @@ def handler(event, context):
         )
         response_body = json.loads(response.get("body").read())
         base64_image = response_body.get("images")[0]
-        signeg_url = save_image_to_s3(base64_image)
+        signed_url = save_image_to_s3(base64_image)
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"image_url": signeg_url}),
+            "body": json.dumps({"image_url": signed_url}),
         }
     else:
         return {
