@@ -12,6 +12,6 @@ InfraImagesStack(
     env_name="prod",  # Environment name for resource naming
 )
 
-# TODO: add boodstrap as part of the pipeline
+# Bootstrap handled manually - SSM permissions added
 
 app.synth()
