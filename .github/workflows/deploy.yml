@@ -1,0 +1,99 @@
+name: Deploy CDK IMAGE GENERATION Infrastructure  # Workflow name shown in GitHub Actions tab
+
+on: # TRIGGERS - when this workflow runs
+  push:
+    branches: [ main ]  # 🚀 Deploy to PROD when pushing to main
+    paths: [ 'infra_images/**' ]  # Only when CDK code changes
+  pull_request:
+    branches: [ main ]  # 👀 Preview changes on PRs
+    paths: [ 'infra_images/**' ]
+
+jobs: # JOBS - what actually runs
+  deploy:
+    runs-on: ubuntu-latest # Use GitHub's Ubuntu server
+    #environment: production  # 🔒 GitHub environment protection
+    
+    steps: # STEPS - executed in order
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4 # Checkout the repository
+      
+    - name: 🟢 Setup Node.js (for CDK)
+      uses: actions/setup-node@v4 # Setup Node.js
+      with:
+        node-version: '18'
+        
+    - name: 🐍 Setup Python (for Lambda)
+      uses: actions/setup-python@v4 # Setup Python
+      with:
+        python-version: '3.12'
+        
+    - name: 📦 Install AWS CDK
+      run: npm install -g aws-cdk # Install AWS CDK
+      
+    - name: 🔐 Set AWS credentials as environment variables
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-west-2
+      run: |
+        echo "AWS credentials configured via environment variables"
+        aws sts get-caller-identity  # Verify credentials work
+        
+    - name: 📚 Install Python dependencies
+      working-directory: ./infra_images
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: 🥾 Bootstrap CDK (if needed)
+      working-directory: ./infra_images
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-west-2
+      run: |
+        echo "🥾 Ensuring CDK is bootstrapped..."
+        cdk bootstrap --require-approval never
+        
+    - name: 👀 Preview changes (PR only)
+      if: github.event_name == 'pull_request'
+      working-directory: ./infra_images
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-west-2
+      run: |
+        echo "🔍 Showing what will change:"
+        cdk diff
+        
+    - name: 💾 Backup current stack (for rollback)
+      if: github.ref == 'refs/heads/main'
+      working-directory: ./infra_images
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-west-2
+      run: |
+        echo "💾 Creating backup of current stack..."
+        aws cloudformation describe-stacks --stack-name InfraImagesStack > stack-backup.json || echo "No existing stack to backup"
+        
+    - name: 🚀 Deploy to Production (main branch only)
+      if: github.ref == 'refs/heads/main'
+      working-directory: ./infra_images
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-west-2
+      run: |
+        echo "🚀 Deploying to production..."
+        # Change env_name to 'prod' for production deployment
+        sed -i 's/env_name="dev"/env_name="prod"/' app.py
+        
+        # Deploy with rollback on failure
+        if cdk deploy --require-approval never; then
+          echo "✅ Production deployment complete!"
+        else
+          echo "❌ Deployment failed! Check logs for details."
+          echo "🔄 Consider manual rollback if needed"
+          exit 1
+        fi
