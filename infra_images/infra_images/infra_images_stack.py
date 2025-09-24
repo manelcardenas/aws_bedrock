@@ -17,7 +17,7 @@ class InfraImagesStack(Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # 🏷️ ADD TAGS for resource organization (env_name is just a placeholder for the environment name)
+        # 🏷️ ADD TAGS for resource organization
         Tags.of(self).add("Project", "ImageGeneration")
         Tags.of(self).add("Environment", env_name)
         Tags.of(self).add("ManagedBy", "CDK")
