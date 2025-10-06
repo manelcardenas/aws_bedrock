@@ -6,6 +6,10 @@ from infra.infra_stack import InfraStack
 
 
 app = cdk.App()
-InfraStack(app, "InfraStack")
+InfraStack(
+    app,
+    "InfraStack",
+    env_name="prod",
+)
 
 app.synth()
