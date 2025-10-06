@@ -56,3 +56,46 @@ command.
  * `cdk docs`        open CDK documentation
 
 Enjoy!
+
+
+
+
+TODO:
+- name: 🔐 Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4  # Better than env vars
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-3
+
+- name: ✅ Verify AWS credentials
+      run: aws sts get-caller-identity
+
+
+- name: 💾 Backup current stack
+      working-directory: ./infra
+      run: |
+        echo "💾 Creating backup of current stack..."
+        aws cloudformation describe-stacks \
+          --stack-name InfraStack \
+          --query 'Stacks[0]' > stack-backup-$(date +%Y%m%d-%H%M%S).json \
+          || echo "⚠️ No existing stack to backup"
+      continue-on-error: true  # Don't fail if stack doesn't exist yet
+
+        
+- name: 🚀 Deploy to Production
+    working-directory: ./infra
+    run: |
+    echo "🚀 Deploying text summary to production..."
+    cdk deploy --require-approval never
+    
+- name: ✅ Deployment Success
+    if: success()
+    run: echo "✅ Text summary deployment complete!"
+    
+- name: ❌ Deployment Failed
+    if: failure()
+    run: |
+    echo "❌ Deployment failed! Check logs for details."
+    echo "🔄 Consider manual rollback if needed"
+    exit 1

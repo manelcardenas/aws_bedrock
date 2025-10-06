@@ -4,9 +4,6 @@ on: # TRIGGERS - when this workflow runs
   push:
     branches: [ main ]  # 🚀 Deploy to PROD when pushing to main
     paths: [ 'infra/**' ]  # Only when text summary CDK code changes
-  pull_request:
-    branches: [ main ]  # 👀 Preview changes on PRs
-    paths: [ 'infra/**' ]
 
 jobs: # JOBS - what actually runs
   deploy:
@@ -45,16 +42,9 @@ jobs: # JOBS - what actually runs
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: 👀 Preview changes (PR only)
-      if: github.event_name == 'pull_request'
+    - name: 🔍 Show deployment preview
       working-directory: ./infra
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: eu-west-3
-      run: |
-        echo "🔍 Showing what will change:"
-        cdk diff
+      run: cdk diff || true  # Show diff but don't fail if no changes
         
     - name: 💾 Backup current stack (for rollback)
       if: github.ref == 'refs/heads/main'
