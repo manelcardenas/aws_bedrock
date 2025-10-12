@@ -45,7 +45,9 @@ class InfraImagesStack(Stack):
                         aws_s3.HttpMethods.GET,
                         aws_s3.HttpMethods.HEAD,
                     ],
-                    allowed_origins=["*"],  # Allow all origins
+                    allowed_origins=[
+                        "*"
+                    ],  # Allow all origins TODO: change to only allow the frontend domain
                     allowed_headers=["*"],
                     exposed_headers=["ETag"],
                     max_age=3000,
