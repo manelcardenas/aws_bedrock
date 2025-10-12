@@ -38,6 +38,19 @@ class InfraImagesStack(Stack):
                     expiration=Duration.days(30),
                 )
             ],
+            # 🌐 CORS CONFIGURATION - Allow browsers to load images
+            cors=[
+                aws_s3.CorsRule(
+                    allowed_methods=[
+                        aws_s3.HttpMethods.GET,
+                        aws_s3.HttpMethods.HEAD,
+                    ],
+                    allowed_origins=["*"],  # Allow all origins
+                    allowed_headers=["*"],
+                    exposed_headers=["ETag"],
+                    max_age=3000,
+                )
+            ],
         )
 
         # 📦 LAMBDA FUNCTION for generating images
