@@ -46,6 +46,17 @@ jobs: # JOBS - what actually runs
       working-directory: ./infra_images
       run: cdk diff || true  # Show diff but don't fail if no changes
         
+    - name: 🔧 Bootstrap CDK (if needed)
+      if: github.ref == 'refs/heads/main'
+      working-directory: ./infra_images
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-west-2
+      run: |
+        echo "🔧 Ensuring CDK is bootstrapped in us-west-2..."
+        cdk bootstrap || echo "⚠️ Bootstrap failed or already exists, continuing..."
+        
     - name: 💾 Backup current stack (for rollback)
       if: github.ref == 'refs/heads/main'
       working-directory: ./infra_images
