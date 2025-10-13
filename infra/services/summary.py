@@ -37,12 +37,21 @@ def handler(event, context):
         result = response_body.get("results")[0].get("outputText")
         return {
             "statusCode": 200,
-            "headers": {"Content-Type": "application/json"},
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type,x-api-key",
+            },
             "body": json.dumps({"summary": result}),
         }
 
     else:
         return {
             "statusCode": 400,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type,x-api-key",
+            },
             "body": json.dumps({"error": "Missing text or points"}),
         }

@@ -60,6 +60,11 @@ def handler(event, context):
             logger.error("Missing description in the request body")
             return {
                 "statusCode": 400,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers": "Content-Type,x-api-key",
+                },
                 "body": json.dumps({"error": "Missing description"}),
             }
         titan_config = get_titan_config(description)
@@ -76,18 +81,32 @@ def handler(event, context):
         signed_url = save_image_to_s3(base64_image)
         return {
             "statusCode": 200,
-            "headers": {"Content-Type": "application/json"},
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type,x-api-key",
+            },
             "body": json.dumps({"image_url": signed_url}),
         }
     except ClientError as e:
         logger.error(f"AWS service error: {e}")
         return {
             "statusCode": 500,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type,x-api-key",
+            },
             "body": json.dumps({"error": "AWS service error"}),
         }
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return {
             "statusCode": 500,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type,x-api-key",
+            },
             "body": json.dumps({"error": "Unexpected internal error"}),
         }
