@@ -7,7 +7,6 @@ from aws_cdk import (
     aws_s3_deployment,
     aws_cloudfront,
     aws_cloudfront_origins,
-    aws_iam,
     Tags,
 )
 from constructs import Construct
