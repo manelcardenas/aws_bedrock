@@ -1,16 +1,7 @@
-"""
-Authentication and Proxy Lambda Functions
-
-This module contains two Lambda handlers:
-1. login_handler: Authenticates users and returns JWT tokens
-2. proxy_handler: Validates JWT and proxies requests to existing APIs
-"""
-
 import json
 import os
 import hashlib
 import hmac
-import base64
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import boto3
