@@ -17,8 +17,3 @@ wheels/
 
 # AI agents
 .coderabbit.yaml
-
-# WIP 
-.github/workflows/deploy-frontend.yml
-/infra_frontend
-src/frontend
