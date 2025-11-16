@@ -1,0 +1,10 @@
+.venv/
+*.egg-info
+*.pyc
+__pycache__/
+cdk.out/
+.cdk.staging/
+.pytest_cache/
+.DS_Store
+node_modules/
+

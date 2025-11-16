@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - AWS Bedrock Playground</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🔐 AWS Bedrock Playground</h1>
+        <p class="subtitle">Secure Access Portal</p>
+      </header>
+
+      <main>
+        <section class="card login-card">
+          <div class="card-header">
+            <h2>Login</h2>
+          </div>
+          <div class="card-body">
+            <form id="login-form">
+              <div class="form-group">
+                <label for="username">Username:</label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  placeholder="Enter your username"
+                  required
+                  autofocus
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="password">Password:</label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">
+                <span class="btn-text">Login</span>
+                <span class="loader" style="display: none"></span>
+              </button>
+
+              <div
+                id="login-error"
+                class="error-box"
+                style="display: none"
+              ></div>
+            </form>
+          </div>
+        </section>
+
+        <section class="card info-card">
+          <div class="card-body">
+            <h3>🚀 Welcome to AWS Bedrock Playground</h3>
+            <p>
+              This application provides access to powerful AI capabilities
+              powered by Amazon Bedrock:
+            </p>
+            <ul class="feature-list">
+              <li>
+                📝 <strong>Text Summarization</strong> - Generate concise
+                summaries using Amazon Titan
+              </li>
+              <li>
+                🎨 <strong>Image Generation</strong> - Create images from text
+                descriptions
+              </li>
+            </ul>
+            <p class="text-muted">
+              Please login with your credentials to access the playground.
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>Built with AWS CDK • Powered by Amazon Bedrock</p>
+      </footer>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+  </body>
+</html>
