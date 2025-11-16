@@ -5,7 +5,6 @@ import aws_cdk as cdk
 
 from infra_frontend.frontend_stack import FrontendStack
 
-
 app = cdk.App()
 env_name = app.node.try_get_context("env_name") or "dev"
 

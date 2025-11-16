@@ -33,9 +33,10 @@ jobs: # JOBS - what actually runs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_DEFAULT_REGION: us-west-2
         run: |
           echo "AWS credentials configured via environment variables"
+          echo "Region: us-west-2 (CloudFront is global, region doesn't matter)"
           aws sts get-caller-identity  # Verify credentials work
 
       - name: 📚 Install Python dependencies
@@ -49,7 +50,7 @@ jobs: # JOBS - what actually runs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_DEFAULT_REGION: us-west-2
         run: |
           echo "🏗️ Checking if CDK bootstrap is needed..."
           cdk bootstrap --context env_name=prod || echo "Bootstrap might already exist"
@@ -59,7 +60,7 @@ jobs: # JOBS - what actually runs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_DEFAULT_REGION: us-west-2
         run: cdk diff --context env_name=prod || true # Show diff but don't fail if no changes
 
       - name: 💾 Backup current stack (for rollback)
@@ -67,7 +68,7 @@ jobs: # JOBS - what actually runs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_DEFAULT_REGION: us-west-2
         run: |
           echo "💾 Creating backup of current stack..."
           aws cloudformation describe-stacks --stack-name prod-FrontendStack > stack-backup.json || echo "No existing stack to backup"
@@ -78,7 +79,7 @@ jobs: # JOBS - what actually runs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_DEFAULT_REGION: us-west-2
         run: |
           echo "🚀 Deploying frontend to production..."
           # Deploy with rollback on failure
@@ -99,7 +100,7 @@ jobs: # JOBS - what actually runs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_DEFAULT_REGION: us-west-2
         run: |
           echo "📊 Deployment Outputs:"
           aws cloudformation describe-stacks \
